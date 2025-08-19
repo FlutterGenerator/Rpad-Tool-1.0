@@ -1,0 +1,35 @@
+comtype unzip_dynamic
+endian little
+
+idstring "\xCD\xEE\x61\x2C"
+
+get FILESIZE asize
+set OFFSET long 4
+set COUNTER long 0
+
+for
+    goto OFFSET
+    findloc NEXT_HEADER string "\xCD\xEE\x61\x2C" 0 ""
+    if NEXT_HEADER == ""
+        break
+    endif
+
+    math SIZE = NEXT_HEADER
+    math SIZE -= OFFSET
+
+    string NAME p= "%08d.dat" COUNTER
+    log NAME OFFSET SIZE
+
+    math COUNTER += 1
+    math OFFSET = NEXT_HEADER
+    math OFFSET += 4
+next
+
+# Final block
+math SIZE = FILESIZE
+math SIZE -= OFFSET
+if SIZE > 0
+    string NAME p= "%08d.dat" COUNTER
+    log NAME OFFSET SIZE
+endif
+

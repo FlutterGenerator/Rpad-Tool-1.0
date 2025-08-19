@@ -1,0 +1,39 @@
+get FILESIZE asize
+set SEG_MAGIC byte "\x28\xb5\x2f\xfd"
+set OFFSET long 0
+set LAST_OFFSET long -1
+set COUNT long 0
+
+print "Full tarama başlıyor... Lütfen bekleyin."
+
+start:
+# EOF kontrolü
+if OFFSET >= FILESIZE
+    cleanexit
+endif
+
+findloc CURR_OFFSET binary SEG_MAGIC OFFSET
+if CURR_OFFSET == -1
+    if LAST_OFFSET != -1
+        math SIZE = FILESIZE
+        math SIZE -= LAST_OFFSET
+        string NAME p "output_segments/segment_%04d.zstd" COUNT
+        log NAME LAST_OFFSET SIZE
+    endif
+    cleanexit
+endif
+
+# segment varsa çıkar
+if LAST_OFFSET != -1
+    math SIZE = CURR_OFFSET
+    math SIZE -= LAST_OFFSET
+    string NAME p "output_segments/segment_%04d.zstd" COUNT
+    log NAME LAST_OFFSET SIZE
+    math COUNT += 1
+endif
+
+# sıradaki arama
+set LAST_OFFSET CURR_OFFSET
+math OFFSET = CURR_OFFSET
+math OFFSET += 4
+goto start
